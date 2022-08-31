@@ -29,7 +29,7 @@ export const cardExpireValidation = (value) => {
       let visaValue = value.split('/');
       let visaDate = new Date(`20${visaValue[1]}`, visaValue[0], 0)  
       return currentDate < moment(visaDate)
-      ? undefined
+      ? ''
       : 'Please Enter A valid Date' 
     } else {
       return 'invalid date format'
@@ -41,7 +41,7 @@ export const cardExpireValidation = (value) => {
 export const onlyTextValidation = (value) => {
   if (value) {
     if (/^[a-zA-Z ]*$/i.test(value)) {
-      return undefined;
+      return '';
     }else {
       return 'Alpabetical letters only'
     }
@@ -52,4 +52,4 @@ export const onlyTextValidation = (value) => {
 };
 
 export const securityCodeValidation = (min, value) => 
-  (value && value.length < min) ? ' must be 3 charecters or more' : undefined;
+  (value && value.length < min) ? ' must be 3 charecters or more' : '';

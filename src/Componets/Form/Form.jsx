@@ -12,7 +12,7 @@ import './Form.css'
 const INIT_CARD = {
   card: '',
   cardHolder: '',
-  Expiry: '',
+  expiry: '',
   securityCode: ''
 }
 
@@ -49,48 +49,48 @@ class Form extends React.Component {
         this.setState((prevState) => ({ 
           cardType: this.findDebitCardType(value),
           error: {
-            ...prevState.error,
+            ...prevState.error, 
             cardError: errorText,
           },
         }));
         break;
       case 'cardHolder':
         errorText = onlyTextValidation(value);
-        this.setState((prevState) => ({ error: { ...prevState, cardHolderError: errorText}}));
+        this.setState((prevState) => ({ error: { ...prevState.error, cardHolderError: errorText}}));
         break;
       case 'expiry':
         errorText = cardExpireValidation(value);
-        this.setState((prevState) => ({ error: { ...prevState, expiryError: errorText}}));
+        this.setState((prevState) => ({ error: { ...prevState.error, expiryError: errorText}}));
         break;
       case 'securityCode':
         errorText = securityCodeValidation(3, value);
-        this.setState((prevState) => ({ error: { ...prevState, securityCodeError: errorText}}));
-        break
+        this.setState((prevState) => ({ error: { ...prevState.error, securityCodeError: errorText}}));
+        break;
       default:
         break;  
     }
   }
 
-  handleBlur = (e) => this.handleValidations(e.target.name, e.target.value);
+  handleBlur = ({ target: { name, value }}) => this.handleValidations(name, value);
   
 
-  HandleInputData = (e) => {
+  HandleInputData = ({ target: { name, value }}) => {
 
-    if (e.target.name === 'card') {
-      let mask = e.target.value.split(' ').join('');
+    if (name === 'card') {
+      let mask = value.split(' ').join('');
       if (mask.length) {
         mask = mask.match(new RegExp('.{1,4}', 'g')).join(' ');
         this.setState((prevState) => ({  
           cardData: { 
             ...prevState.cardData,
-            [e.target.name]: mask,
+            [name]: mask,
           },
         }));
       } else {
         this.setState((prevState) => ({  
           cardData: { 
             ...prevState.cardData,
-            [e.target.name]: '',
+            [name]: '',
           },
         }));
       }
@@ -98,14 +98,57 @@ class Form extends React.Component {
       this.setState((prevState) => ({  
         cardData: { 
           ...prevState.cardData,
-          [e.target.name]: e.target.value 
+          [name]: value 
         },
       }));
     }
- 
   }
 
+  checkErrorBeforeSave = () => {
+    const { cardData, error } = this.state
+    let errorValue = {};
+    let isError = false;
+   Object.keys(cardData).forEach((val) => {
+    console.log(error)
+    if (!cardData[val].length){
+      errorValue = { ...errorValue, [`${val}Error`]: 'Required'};
+      isError = true;
+    }
+    else {
+      isError = false
+    }
+   });
+   Object.keys(error).forEach((val) => {
+    if (error[val].length) {
+      errorValue = { ...errorValue, [`${val}Error`]: 'Required'};
+      isError = true;
+    }
+   })
+   this.setState({ error: errorValue });
+   console.log(isError)
+   return isError;
+  }
+
+  handleAddCard = (e) => {
+    e.preventDefault();
+    const errorCheck = this.checkErrorBeforeSave();
+    console.log(errorCheck)
+   if (!errorCheck) {
+    this.setState({
+      cardData: INIT_CARD,
+      cardType: '',
+    });
+   }
+  };
+
   render() {
+
+    const { 
+      cardData, 
+      error, 
+      cardType, 
+      maxLength 
+    } = this.state
 
     const inputDate = [
       { label: 'Card Number', name: 'card', type: 'text', error: 'cardError' },
@@ -117,25 +160,25 @@ class Form extends React.Component {
     return(
       <div>
         <h1>Add New Card</h1>
-        <form>
+        <form onSubmit={this.handleAddCard}>
           {inputDate.length ? inputDate.map((item) => (
             <InputBase 
             placeholder={item.label}
             type={item.type}
-            value={this.state.cardData && this.state.cardData[item.name]}
+            value={cardData && cardData[item.name]}
             onChange={this.HandleInputData}
             autoComplete="off"
-            maxLength={this.state.maxLength}
+            maxLength={maxLength}
             name={item.name}
             onBlur={this.handleBlur}
-            error={this.state.error}
-            cardType={this.state.cardType}
+            error={error}
+            cardType={cardType}
             isCard={item.name === 'card'}
             errorM={
               (this.state.error
-              && this.state.error[item.error]
-              && this.state.error[item.error].length > 1)
-              ? this.state.error[item.error]
+              && error[item.error]
+              && error[item.error].length > 1)
+              ? error[item.error]
               : null
             }
           />
